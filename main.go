@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"sync/atomic"
 )
@@ -33,37 +32,11 @@ func main() {
 	mux.HandleFunc("GET /api/healthz", handlerReadiness)
 	mux.HandleFunc("GET /admin/metrics", apiCfg.handlerMetrics)
 	mux.HandleFunc("POST /admin/reset", apiCfg.handlerMetricsReset)
+	mux.HandleFunc("POST /api/validate_chirp", handlerValidateChirp)
 
 	svr := &http.Server{
 		Handler: mux,
 		Addr:    ":" + port,
 	}
 	svr.ListenAndServe()
-}
-
-func (cfg *apiConfig) handlerMetrics(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`
-<html>
-
-<body>
-	<h1>Welcome, Chirpy Admin</h1>
-	<p>Chirpy has been visited %d times!</p>
-</body>
-
-</html>
-	`, cfg.fileserverHits.Load())))
-}
-
-func (cfg *apiConfig) handlerMetricsReset(w http.ResponseWriter, r *http.Request) {
-	cfg.fileserverHits.Store(0)
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-}
-
-func handlerReadiness(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
