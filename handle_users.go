@@ -8,7 +8,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func (cfg *apiConfig) handleUsers(w http.ResponseWriter, r *http.Request) {
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	Email     string    `json:"email"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) {
 	type returnVals struct {
 		Email string `json:"email"`
 	}
@@ -25,12 +32,7 @@ func (cfg *apiConfig) handleUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	response := struct {
-		ID        uuid.UUID `json:"id"`
-		Email     string    `json:"email"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-	}{
+	response := User{
 		ID:        user.ID,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt,
