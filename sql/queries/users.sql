@@ -14,3 +14,12 @@ DELETE FROM users;
 
 -- name: GetUserByEmail :one
 SELECT * FROM USERS WHERE email = $1;
+
+-- name: GetUserByRereshToken :one
+SELECT *
+FROM users
+WHERE users.id = (
+    SELECT user_id
+    FROM refresh_tokens
+    WHERE token = $1
+);

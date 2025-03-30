@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/pl1000100/chirpy/internal/database"
-	"github.com/pl1000100/chirpy/internal/database/auth"
+	"github.com/pl1000100/chirpy/internal/auth"
 )
 
 type Chirp struct {
@@ -34,8 +34,7 @@ func filterWords(body string, words []string) string {
 
 func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request) {
 	type returnVals struct {
-		Body   string    `json:"body"`
-		UserID uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -58,10 +57,6 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 		http.Error(w, `{"error": "Unauthorize"}`, http.StatusUnauthorized)
 		return
 	}
-	// if userID != jsonData.UserID {
-	// 	http.Error(w, `{"error": "Wrong user"}`, http.StatusUnauthorized)
-	// 	return
-	// }
 
 	if len(jsonData.Body) > 140 {
 		http.Error(w, `{"error": "Chirp is too long"}`, http.StatusBadRequest)

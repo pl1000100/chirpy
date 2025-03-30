@@ -64,3 +64,26 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	)
 	return i, err
 }
+
+const getUserByRereshToken = `-- name: GetUserByRereshToken :one
+SELECT id, created_at, updated_at, email, hashed_password
+FROM users
+WHERE users.id = (
+    SELECT user_id
+    FROM refresh_tokens
+    WHERE token = $1
+)
+`
+
+func (q *Queries) GetUserByRereshToken(ctx context.Context, token string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByRereshToken, token)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+	)
+	return i, err
+}
