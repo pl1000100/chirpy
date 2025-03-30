@@ -2,12 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/pl1000100/chirpy/internal/database"
+	"github.com/pl1000100/chirpy/internal/database/auth"
 )
 
 type Chirp struct {
@@ -44,6 +46,23 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	defer r.Body.Close()
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+
+		http.Error(w, `{"error": "Couldn't authorize"}`, http.StatusBadRequest)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.jwt_secret)
+	if err != nil {
+		http.Error(w, `{"error": "Unauthorize"}`, http.StatusUnauthorized)
+		return
+	}
+	// if userID != jsonData.UserID {
+	// 	http.Error(w, `{"error": "Wrong user"}`, http.StatusUnauthorized)
+	// 	return
+	// }
+
 	if len(jsonData.Body) > 140 {
 		http.Error(w, `{"error": "Chirp is too long"}`, http.StatusBadRequest)
 		return
@@ -58,10 +77,11 @@ func (cfg *apiConfig) handleChirpsCreate(w http.ResponseWriter, r *http.Request)
 
 	createChirpParams := database.CreateChirpParams{
 		Body:   newBody,
-		UserID: jsonData.UserID,
+		UserID: userID,
 	}
 	createdChirp, err := cfg.db.CreateChirp(r.Context(), createChirpParams)
 	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "Chirp could not be created, %v"}`, err), http.StatusInternalServerError)
 		http.Error(w, `{"error": "Chirp could not be created"}`, http.StatusInternalServerError)
 		return
 	}
