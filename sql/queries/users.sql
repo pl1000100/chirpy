@@ -23,3 +23,12 @@ WHERE users.id = (
     FROM refresh_tokens
     WHERE token = $1
 );
+
+-- name: UpdateUserByToken :one
+UPDATE users 
+SET 
+    updated_at = NOW(),
+    email = $2,
+    hashed_password = $3
+WHERE id = $1
+RETURNING *;
