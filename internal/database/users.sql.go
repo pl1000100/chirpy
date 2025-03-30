@@ -20,7 +20,7 @@ VALUES (
     $1,
     $2
 )
-RETURNING id, created_at, updated_at, email, hashed_password
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type CreateUserParams struct {
@@ -37,6 +37,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -51,7 +52,7 @@ func (q *Queries) DeleteAllUsers(ctx context.Context) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, created_at, updated_at, email, hashed_password FROM USERS WHERE email = $1
+SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red FROM USERS WHERE email = $1
 `
 
 func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
@@ -63,12 +64,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
 
 const getUserByRereshToken = `-- name: GetUserByRereshToken :one
-SELECT id, created_at, updated_at, email, hashed_password
+SELECT id, created_at, updated_at, email, hashed_password, is_chirpy_red
 FROM users
 WHERE users.id = (
     SELECT user_id
@@ -86,6 +88,7 @@ func (q *Queries) GetUserByRereshToken(ctx context.Context, token string) (User,
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
 }
@@ -97,7 +100,7 @@ SET
     email = $2,
     hashed_password = $3
 WHERE id = $1
-RETURNING id, created_at, updated_at, email, hashed_password
+RETURNING id, created_at, updated_at, email, hashed_password, is_chirpy_red
 `
 
 type UpdateUserByTokenParams struct {
@@ -115,6 +118,25 @@ func (q *Queries) UpdateUserByToken(ctx context.Context, arg UpdateUserByTokenPa
 		&i.UpdatedAt,
 		&i.Email,
 		&i.HashedPassword,
+		&i.IsChirpyRed,
 	)
 	return i, err
+}
+
+const updateUserChirpyRedByID = `-- name: UpdateUserChirpyRedByID :exec
+UPDATE users
+SET
+    updated_at = NOW(),
+    is_chirpy_red = $2
+WHERE id = $1
+`
+
+type UpdateUserChirpyRedByIDParams struct {
+	ID          uuid.UUID
+	IsChirpyRed bool
+}
+
+func (q *Queries) UpdateUserChirpyRedByID(ctx context.Context, arg UpdateUserChirpyRedByIDParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserChirpyRedByID, arg.ID, arg.IsChirpyRed)
+	return err
 }

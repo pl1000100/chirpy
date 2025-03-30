@@ -17,6 +17,7 @@ type User struct {
 	Email        string    `json:"email"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) {
@@ -54,10 +55,11 @@ func (cfg *apiConfig) handleUsersCreate(w http.ResponseWriter, r *http.Request) 
 
 	res, err := json.Marshal(
 		User{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
+			ID:          user.ID,
+			CreatedAt:   user.CreatedAt,
+			UpdatedAt:   user.UpdatedAt,
+			Email:       user.Email,
+			IsChirpyRed: user.IsChirpyRed,
 		},
 	)
 	if err != nil {
@@ -111,12 +113,15 @@ func (cfg *apiConfig) handleUsersUpdate(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, `{"error": "Can't update database"}`, http.StatusInternalServerError)
 		return
 	}
+
+	// respond
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(User{
-		ID:        updatedUser.ID,
-		CreatedAt: updatedUser.CreatedAt,
-		UpdatedAt: updatedUser.UpdatedAt,
-		Email:     updatedUser.Email,
+		ID:          updatedUser.ID,
+		CreatedAt:   updatedUser.CreatedAt,
+		UpdatedAt:   updatedUser.UpdatedAt,
+		Email:       updatedUser.Email,
+		IsChirpyRed: updatedUser.IsChirpyRed,
 	}); err != nil {
 		http.Error(w, `{"error": "Can't encode data"}`, http.StatusInternalServerError)
 		return

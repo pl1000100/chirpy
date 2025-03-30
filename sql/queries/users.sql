@@ -32,3 +32,10 @@ SET
     hashed_password = $3
 WHERE id = $1
 RETURNING *;
+
+-- name: UpdateUserChirpyRedByID :exec
+UPDATE users
+SET
+    updated_at = NOW(),
+    is_chirpy_red = $2
+WHERE id = $1;

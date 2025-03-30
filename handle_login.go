@@ -70,6 +70,7 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 			Email:        user.Email,
 			Token:        generatedToken,
 			RefreshToken: databaseRefreshToken.Token,
+			IsChirpyRed:  user.IsChirpyRed,
 		},
 	); err != nil {
 		http.Error(w, `{"error": "Could not encode use data"}`, http.StatusInternalServerError)
