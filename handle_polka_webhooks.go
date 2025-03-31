@@ -5,17 +5,18 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/pl1000100/chirpy/internal/auth"
 	"github.com/pl1000100/chirpy/internal/database"
 )
 
-type polkaUserUpgraded struct {
-	Event string `json:"event"`
-	Data  struct {
-		UserID string `json:"user_id"`
-	} `json:"data"`
-}
-
 func (cfg *apiConfig) handlePolkaWebhooks(w http.ResponseWriter, r *http.Request) {
+	type polkaUserUpgraded struct {
+		Event string `json:"event"`
+		Data  struct {
+			UserID string `json:"user_id"`
+		} `json:"data"`
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 
 	// get request data
@@ -25,8 +26,17 @@ func (cfg *apiConfig) handlePolkaWebhooks(w http.ResponseWriter, r *http.Request
 		return
 	}
 	defer r.Body.Close()
+
+	// auth
+	reqApiKey, err := auth.GetAPIKey(r.Header)
+	if err != nil || reqApiKey != cfg.polka_key {
+		http.Error(w, `{"error":"Couldn't get api key or bad key"}`, http.StatusUnauthorized)
+		return
+	}
+
 	// handle events
 	switch reqData.Event {
+
 	case "user.upgraded":
 		userID, err := uuid.Parse(reqData.Data.UserID)
 		if err != nil {
